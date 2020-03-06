@@ -140,12 +140,56 @@ function select(request, response){
 }
 
 //수정하기 
-function update(){
+function update(request ,response){
+    //파라미터 받기!!
+    var content="";
+    request.on("data", function(data){
+        content += data;
+        var json = querystring.parse(content);     
+
+        console.log("name:", json.name);
+        console.log("gender:", json.gender);
+        console.log("age:", json.age);
+
+        const client = mysql.createConnection(conStr);
+        
+        var sql = "update hero set name=?, gender=?, age=?";
+        sql += " where hero_id=?";
+
+        client.query(sql, [json.name, json.gender, json.age, json.hero_id] , function(err, fields){
+            if(err){
+                console.log("수정실패",err);
+            }else{
+                console.log("수정성공");
+            }
+        });
+
+    });
+
 }
+
 //삭제하기 
-function remove(){
+function remove(request, response){
+    //삭제를 위한 hero_id  파라미터 받기 
+    var urlObj = url.parse(request.url, true);    
+    var json = urlObj.query;
+    var hero_id = json.hero_id;
+
+    var client = mysql.createConnection(conStr);    
+    var sql="delete from hero where hero_id=?";
+    client.query(sql, [hero_id], function(err, fields){
+        if(err){
+            console.log("삭제실패", err);
+        }else{
+            response.writeHead(301,{"Location":"/hero/list"});    
+            response.end();            
+        }
+    });
+
 }
 
 server.listen(7777, function(){
     console.log("The server is running at 7777 port...");
 });
+
+
