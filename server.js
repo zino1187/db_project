@@ -3,6 +3,7 @@ var http = require("http"); //기본 내장 웹서버 모듈
 var mysql = require("mysql");//외부 모듈 가져오기
 var querystring = require("querystring");//post 파라미터 처리 모듈
 var fs = require("fs"); //File System 내장모듈
+var url = require("url"); //resolution, parsing
 
 //node.js의 모듈 중 jsp, php, asp  와 같은 서버에서만 
 //해석 및 실행되는 스크립트 기술이 지원된다..
@@ -23,8 +24,13 @@ const conStr = {
 
 var server = http.createServer(function(request, response){
     console.log("클라이언트의 요청 url", request.url);
+    //request.url의 문제점?  url에 대한 이해를 하지 못하고, 
+    //단순 문자열 비교를 히려고 한다..따라서 파라미터가 포함되어 있을경우
+    //문자열이 틀리다고 생각해버린다.. 
+    //URL전문적으로 다루는 모듈을 도입하겠다!!
+    const path = url.parse(request.url).pathname;
 
-    switch(request.url){
+    switch(path){
         case "/hero/join":joinform(response);break;//등록폼 요청
         case "/hero/insert":insert(request, response);break;//한건 등록
         case "/hero/list":selectAll(request, response);break; //목록 가져오기
@@ -110,8 +116,27 @@ function selectAll(request, response){
 
 //한건 가져오기 
 function select(request, response){
-    response.writeHead(200,{"Content-Type":"text/html;charset=utf-8"});    
-    response.end("상세보기 페이지 보여줄 예정");
+    var client = mysql.createConnection(conStr); 
+    var sql ="select * from hero where hero_id=?";
+    //요청 객체로 부터 get방식으로 전송된 파라미터 추출하기!!
+    //json으로 받기 위해서는 url객체가 필요함 
+    var urlObj = url.parse(request.url, true); //true옵션을 주면 JSON으로 반환해줌
+    var json = urlObj.query;//제이슨 객체로 받음
+    console.log("클라이언트가 전송한 hero_id값은 ", json.hero_id);
+
+    client.query(sql, [ json.hero_id] , function(err, result, fields){
+        console.log("result : ",result);     
+        
+        response.writeHead(200,{"Content-Type":"text/html;charset=utf-8"});    
+
+        fs.readFile("detail.ejs", "utf8", function(err, data){
+            response.end(ejs.render(data,{
+                "record" : result[0]
+            }));
+        });            
+
+    });
+
 }
 
 //수정하기 
