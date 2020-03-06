@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script>
+
+</script>   
+</head>
+<body>
+    <table>
+        <tr>
+            <td>No</td>
+            <td>이름</td>
+            <td>성별</td>
+            <td>나이</td>
+        </tr>
+        <%for(var i=0;i<result.length;i++){%>
+        <%var obj = result[i];%>
+        <tr>
+            <td><%=i%></td>
+            <td><a href="/hero/detail?hero_id=<%=obj.hero_id%>"><%=obj.name%></a></td>
+            <td><%=obj.gender%></td>
+            <td><%=obj.age%></td>
+        </tr>
+        <%}%>
+    </table>
+    <button>비동기 전송하기</button>
+    <button>동기 전송하기</button>
+</body>
+</html>
+
+
